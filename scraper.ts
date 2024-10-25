@@ -53,8 +53,14 @@ async function scrapeShopifyPage(url: string): Promise<ScraperResponse> {
       }
     });
 
-    // Detect button styles
-    const buttonStyles = $('form[action*="/cart/add"] button').first().css();
+    // Check if buttonStyles is defined and assign default values if it is not
+    const buttonElement = $('form[action*="/cart/add"] button').first();
+    const buttonStyles = buttonElement.css();
+
+    if (!buttonStyles) {
+      throw new Error('Could not retrieve button styles');
+    }
+
     const primaryButton: ButtonStyle = {
       fontFamily: buttonStyles['font-family'] || 'inherit',
       fontSize: buttonStyles['font-size'] || 'inherit',
