@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import axios from 'axios';
 
 const app = express();
 const port = 3000;
@@ -38,50 +37,27 @@ async function scrapeShopifyPage(url: string): Promise<any> {
   };
 }
 
-function isValidUrl(url: string): boolean {
-  try {
-    new URL(url); // This checks if the URL is valid
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
+// Define your route handler with proper types
 app.get(
   '/api/scrape',
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { url } = req.query;
 
-      if (!url || typeof url !== 'string' || !isValidUrl(url)) {
-        res.status(400).json({ error: 'A valid URL parameter is required' });
+      if (!url || typeof url !== 'string') {
+        res.status(400).json({ error: 'URL parameter is required' });
         return;
       }
 
-      // Optionally, check if the URL belongs to a Shopify store (contains "shopify" in the domain)
-      if (!url.includes('shopify')) {
-        res
-          .status(400)
-          .json({ error: 'The URL must belong to a Shopify store' });
-        return;
-      }
-
-      // Attempt to fetch the content of the URL to verify it's reachable
-      try {
-        await axios.get(url); // This will throw an error if the URL is not reachable
-      } catch (err) {
-        res.status(400).json({ error: 'The URL is not reachable' });
-        return;
-      }
-
-      const result = await scrapeShopifyPage(url as string);
+      const result = await scrapeShopifyPage(url as string); // Make sure 'url' is a string
       res.json(result);
     } catch (error) {
-      next(error);
+      next(error); // Use the Express error handling middleware
     }
   }
 );
 
+// Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
