@@ -1,63 +1,29 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
+import { getStylesFromUrl } from './scraper';
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+// API endpoint to fetch styles
+app.get('/api/scrape', async (req: Request, res: Response) => {
+  const { url } = req.query;
 
-// Example implementation of the scrapeShopifyPage function
-async function scrapeShopifyPage(url: string): Promise<any> {
-  // Perform scraping here and return the results.
-  // For now, we'll return a placeholder response.
-  return {
-    fonts: [
-      {
-        family: 'Helvetica',
-        variants: '400',
-        letterSpacings: '0.01em',
-        fontWeight: '400',
-        url: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
-      },
-    ],
-    primaryButton: {
-      fontFamily: 'Helvetica',
-      fontSize: '16px',
-      lineHeight: '1.5',
-      letterSpacing: '0.01em',
-      textTransform: 'uppercase',
-      textDecoration: 'underline',
-      textAlign: 'left',
-      backgroundColor: '#000',
-      color: '#fff',
-      borderColor: '#000',
-      borderWidth: '1px',
-      borderRadius: '4px',
-    },
-  };
-}
-
-// Define your route handler with proper types
-app.get(
-  '/api/scrape',
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const { url } = req.query;
-
-      if (!url || typeof url !== 'string') {
-        res.status(400).json({ error: 'URL parameter is required' });
-        return;
-      }
-
-      const result = await scrapeShopifyPage(url as string); // Make sure 'url' is a string
-      res.json(result);
-    } catch (error) {
-      next(error); // Use the Express error handling middleware
-    }
+  if (!url) {
+    res
+      .status(400)
+      .json({ error: 'Please provide the url as a query parameter.' });
+    return; // Ensure the function doesn't proceed further
   }
-);
+
+  try {
+    const styles = await getStylesFromUrl(url as string);
+    res.json(styles);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch styles.' });
+  }
+});
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
